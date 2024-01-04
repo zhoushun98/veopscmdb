@@ -7,8 +7,8 @@ services:
     restart: always
     volumes:
       - db-data:/bitnami/mysql/data
-      - ./mysql/my_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
-      - ./mysql/cmdb_ddl.sql:/docker-entrypoint-initdb.d/cmdb.sql
+      - ./mysql/cnf/my_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
+      - ./mysql/sql/cmdb_base.sql:/docker-entrypoint-initdb.d/cmdb.sql
     ports:
       - 3306:3306
     networks:
