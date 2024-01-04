@@ -62,6 +62,8 @@ COPY --from=api-builder /requirements.txt /data/apps/cmdb/requirements.txt
 
 COPY wait-${TARGETARCH} /wait
 
+RUN chmod 755 /wait
+
 RUN pip install  --no-cache-dir -r requirements.txt \
     && cp ./settings.example.py settings.py \
     && sed -i "s#{user}:{password}@127.0.0.1:3306/{db}#cmdb:123456@mysql:3306/cmdb#g" settings.py \
