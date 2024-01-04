@@ -1,7 +1,7 @@
 # ================================= UI ================================
 FROM node:16.20.2 AS ui-builder
 
-COPY ./cmdb-ui /data/apps/cmdb-ui
+COPY ./cmdb/cmdb-ui /data/apps/cmdb-ui
 
 WORKDIR /data/apps/cmdb-ui
 
@@ -23,7 +23,7 @@ COPY --from=ui-builder /data/apps/cmdb-ui/dist /etc/nginx/html/
 # ================================= API ================================
 FROM python:3.8.12-alpine AS api-builder
 
-COPY ./cmdb-api /data/apps/cmdb
+COPY ./cmdb/cmdb-api /data/apps/cmdb
 
 WORKDIR /data/apps/cmdb
 
@@ -39,7 +39,7 @@ RUN pipenv requirements --dev > /requirements.txt
 
 FROM python:3.8.12-alpine AS cmdb-api
 
-COPY ./cmdb-api /data/apps/cmdb
+COPY ./cmdb/cmdb-api /data/apps/cmdb
 
 WORKDIR /data/apps/cmdb
 
