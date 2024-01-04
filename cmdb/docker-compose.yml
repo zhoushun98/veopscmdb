@@ -2,7 +2,7 @@ version: "3"
 
 services:
   cmdb-db:
-    image: bitnami/mysql:5.7.43
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/mysql:5.7.43
     container_name: cmdb-db
     restart: always
     volumes:
@@ -28,7 +28,7 @@ services:
       - MYSQL_SQL_MODE=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 
   cmdb-cache:
-    image: redis:6.2.14
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/redis:6.2.14
     container_name: cmdb-cache
     restart: always
     volumes:
