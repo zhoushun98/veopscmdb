@@ -8,7 +8,7 @@ services:
     volumes:
       - db-data:/bitnami/mysql/data
       - ./mysql/my_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
-      - ./mysql/cmdb.sql:/docker-entrypoint-initdb.d/cmdb.sql
+      - ./mysql/cmdb_ddl.sql:/docker-entrypoint-initdb.d/cmdb.sql
     ports:
       - 3306:3306
     networks:
