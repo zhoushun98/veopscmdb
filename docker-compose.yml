@@ -7,7 +7,6 @@ services:
     restart: always
     volumes:
       - db-data:/bitnami/mysql/data
-      - /etc/localtime:/etc/localtime:ro
       - ./mysql/my_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
       - ./mysql/cmdb.sql:/docker-entrypoint-initdb.d/cmdb.sql
     ports:
@@ -33,7 +32,6 @@ services:
     restart: always
     volumes:
       - cache-data:/data
-      - /etc/localtime:/etc/localtime:ro
     ports:
       - 6379:6379
     networks:
