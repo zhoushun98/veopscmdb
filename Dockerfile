@@ -50,6 +50,8 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/re
 
 RUN apk add --no-cache tzdata gcc musl-dev libffi-dev openldap-dev python3-dev jpeg-dev zlib-dev build-base
 
+ARG TARGETARCH
+
 ENV TZ=Asia/Shanghai
 
 RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
@@ -57,6 +59,8 @@ RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && \
     rm -rf /var/cache/apk/*
 
 COPY --from=api-builder /requirements.txt /data/apps/cmdb/requirements.txt
+
+COPY wait-${TARGETARCH} /wait
 
 RUN pip install  --no-cache-dir -r requirements.txt \
     && cp ./settings.example.py settings.py \
