@@ -44,7 +44,7 @@ services:
       - TZ=Asia/Shanghai
 
   cmdb-api:
-    image: zhoushun98/cmdb-api:2.3.10-arm64
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-api:2.3.10-arm64
     container_name: cmdb-api
     environment:
       TZ: Asia/Shanghai
