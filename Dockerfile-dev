@@ -1,0 +1,71 @@
+# ================================= UI ================================
+FROM node:16.20.2 AS ui-builder
+
+COPY ./cmdb-ui /data/apps/cmdb-ui
+
+WORKDIR /data/apps/cmdb-ui
+
+RUN sed -i "s#http://127.0.0.1:5000##g" .env \
+    && yarn config set registry https://registry.npmmirror.com \
+    && yarn install \
+    && yarn build
+
+FROM nginx:stable-alpine AS cmdb-ui
+
+ENV TZ=Asia/Shanghai
+
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
+    && apk --update --no-cache add tzdata \
+    && cp -a /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && echo ${TZ} > /etc/timezone \
+    && rm -rf /var/cache/apk/*
+
+COPY --chown=nginx:nginx --from=ui-builder /data/apps/cmdb-ui/dist /etc/nginx/html/
+
+# ================================= API ================================
+FROM python:3.8.12-alpine AS api-builder
+
+COPY ./cmdb-api /data/apps/cmdb
+
+WORKDIR /data/apps/cmdb
+
+RUN set -x \
+    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
+    && apk add --update --no-cache tzdata gcc musl-dev libffi-dev openldap-dev python3-dev jpeg-dev zlib-dev build-base \
+    && pip install pipenv -i https://mirrors.aliyun.com/pypi/simple \
+    && pipenv install \
+    && pipenv requirements --dev > /requirements.txt
+
+FROM python:3.8.12-alpine AS cmdb-api
+
+COPY ./cmdb-api /data/apps/cmdb
+
+WORKDIR /data/apps/cmdb
+
+ENV TZ=Asia/Shanghai
+
+COPY --from=api-builder /requirements.txt /data/apps/cmdb/requirements.txt
+
+RUN set -x \
+    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
+    && apk --update --no-cache add wget tzdata gcc musl-dev libffi-dev openldap-dev python3-dev jpeg-dev zlib-dev build-base \
+    && cp -a /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && echo ${TZ} > /etc/timezone \
+    && apkArch="$(cat /etc/apk/arch)" \
+    && case "$apkArch" in \
+        x86_64) \
+            wget https://mirror.ghproxy.com/https://github.com/ufoscout/docker-compose-wait/releases/download/2.12.1/wait -O /wait \
+            ;; \
+        aarch64) \
+            wget https://mirror.ghproxy.com/https://github.com/ufoscout/docker-compose-wait/releases/download/2.12.1/wait_aarch64 -O /wait \
+            ;; \
+        *) \
+            ;; \
+    esac \
+    && chmod 755 /wait \
+    && pip install --no-cache-dir -r requirements.txt \
+    && cp ./settings.example.py settings.py \
+    && sed -i "s#{user}:{password}@127.0.0.1:3306/{db}#cmdb:123456@mysql:3306/cmdb#g" settings.py \
+    && sed -i "s#redis://127.0.0.1#redis://redis#g" settings.py \
+    && sed -i "s#CACHE_REDIS_HOST = '127.0.0.1'#CACHE_REDIS_HOST = 'redis'#g" settings.py \
+    && rm -rf /var/cache/apk/*
