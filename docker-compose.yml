@@ -1,93 +1,101 @@
 version: "3"
 
 services:
-  cmdb-db:
-    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/mysql:5.7.43
-    container_name: cmdb-db
-    restart: always
-    volumes:
-      - db-data:/bitnami/mysql/data
-      - ./mysql/cnf/my_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
-      - ./mysql/sql/cmdb_base.sql:/docker-entrypoint-initdb.d/cmdb.sql
-    ports:
-      - 3306:3306
-    networks:
-      new:
-        aliases:
-          - mysql
-    environment:
-      - TZ=Asia/Shanghai
-      - MYSQL_ROOT_PASSWORD=123456
-      - MYSQL_DATABASE=cmdb
-      - MYSQL_USER=cmdb
-      - MYSQL_PASSWORD=123456
 
   cmdb-cache:
-    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/redis:6.2.14
     container_name: cmdb-cache
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/redis:6.2.14
     restart: always
-    volumes:
-      - cache-data:/data
-    ports:
-      - 6379:6379
+    environment:
+      TZ: Asia/Shanghai
     networks:
       new:
         aliases:
-          - redis
+        - redis
+    ports:
+    - 6379:6379
+    volumes:
+    - cache-data:/data
+
+  cmdb-db:
+    container_name: cmdb-db
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/mysql:5.7.43
+    restart: always
     environment:
-      - TZ=Asia/Shanghai
+      MYSQL_DATABASE: cmdb
+      MYSQL_PASSWORD: "123456"
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_USER: cmdb
+      TZ: Asia/Shanghai
+    networks:
+      new:
+        aliases:
+        - mysql
+    ports:
+    - 3306:3306
+    volumes:
+    - db-data:/bitnami/mysql/data
+    - ./mysql/cnf/my_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
+    - ./mysql/sql/cmdb_base.sql:/docker-entrypoint-initdb.d/cmdb.sql:ro
 
   cmdb-api:
-    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-api:2.3.10
     container_name: cmdb-api
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-api:2.3.10
     environment:
       TZ: Asia/Shanghai
       WAIT_HOSTS: cmdb-db:3306, cmdb-cache:6379
     command:
-      - /bin/sh
-      - -c
-      - |
-        sed -i "s#USE_ACL = False#USE_ACL = True#g" settings.py
-        /wait
-        flask db-setup
-        flask common-check-new-columns
-        gunicorn --workers=4 autoapp:app -b 0.0.0.0:5000 -D
-        
-        celery -A celery_worker.celery worker -E -Q one_cmdb_async --autoscale=4,1 --logfile=one_cmdb_async.log -D
-        celery -A celery_worker.celery worker -E -Q acl_async --logfile=one_acl_async.log --autoscale=2,1 -D
-        
-        nohup flask cmdb-trigger > trigger.log 2>&1 &
-        flask cmdb-init-cache
-        flask cmdb-init-acl
-        flask cmdb-counter > counter.log 2>&1
+    - /bin/sh
+    - -c
+    - |
+      sed -i "s#USE_ACL = False#USE_ACL = True#g" settings.py
+      /wait
+      flask db-setup
+      flask common-check-new-columns
+      gunicorn --workers=4 autoapp:app -b 0.0.0.0:5000 -D
 
+      celery -A celery_worker.celery worker -E -Q one_cmdb_async --autoscale=4,1 --logfile=one_cmdb_async.log -D
+      celery -A celery_worker.celery worker -E -Q acl_async --logfile=one_acl_async.log --autoscale=2,1 -D
+
+      nohup flask cmdb-trigger > trigger.log 2>&1 &
+      flask cmdb-init-cache
+      flask cmdb-init-acl > /dev/null 2>&1
+      flask cmdb-counter > counter.log 2>&1
     depends_on:
-      - cmdb-db
-      - cmdb-cache
+      cmdb-cache:
+        condition: service_started
+        required: true
+      cmdb-db:
+        condition: service_started
+        required: true
     networks:
       new:
         aliases:
-          - cmdb-api
+        - cmdb-api
 
   cmdb-ui:
-    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-ui:2.3.10
     container_name: cmdb-ui
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-ui:2.3.10
     depends_on:
-      - cmdb-api
-    volumes:
-      - ./nginx/cmdb.conf:/etc/nginx/conf.d/cmdb.conf
+      cmdb-api:
+        condition: service_started
+        required: true
     networks:
-      - new
+      new: null
     ports:
-      - "80:80"
-
-volumes:
-  db-data:
-    name: cmdb_db-data
-  cache-data:
-    name: cmdb_cache-data
+    - 80:80
+    volumes:
+    - ./nginx/cmdb.conf:/etc/nginx/conf.d/default.conf:ro
 
 networks:
   new:
-    driver: bridge
     name: cmdb_network
+    driver: bridge
+
+volumes:
+  cache-data:
+    name: cmdb_cache-data
+    driver: local
+  db-data:
+    name: cmdb_db-data
+    driver: local
