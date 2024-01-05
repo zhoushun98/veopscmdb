@@ -47,7 +47,7 @@ services:
     command:
     - /bin/sh
     - -c
-    - |
+    - |-
       sed -i "s#USE_ACL = False#USE_ACL = True#g" settings.py
       /wait
       flask db-setup
