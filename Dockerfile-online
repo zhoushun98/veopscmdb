@@ -11,6 +11,7 @@ RUN set -x \
     && cd cmdb-"$CMDB_VERSION"/cmdb-ui/ \
     && yarn config set registry https://registry.npmmirror.com \
     && yarn config set ignore-engines true \
+    && sed -i "s#http://127.0.0.1:5000##g" .env \
     && yarn install \
     && yarn build
 
