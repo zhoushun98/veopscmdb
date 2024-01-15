@@ -3,7 +3,7 @@ FROM node:16.20.2 AS ui-builder
 
 LABEL maintainer="zhoushun98@hotmail.com"
 
-ENV CMDB_VERSION 2.3.10
+ENV CMDB_VERSION 2.3.11
 
 RUN set -x \
     && curl -fsSLOJ https://mirror.ghproxy.com/https://github.com/veops/cmdb/archive/refs/tags/"$CMDB_VERSION".tar.gz \
@@ -17,16 +17,18 @@ RUN set -x \
 
 FROM nginx:stable-alpine AS cmdb-ui
 
+ENV CMDB_VERSION 2.3.11
+
 LABEL maintainer="zhoushun98@hotmail.com"
 
-COPY --chown=nginx:nginx --from=ui-builder /cmdb-2.3.10/cmdb-ui/dist /etc/nginx/html
+COPY --chown=nginx:nginx --from=ui-builder /cmdb-$CMDB_VERSION/cmdb-ui/dist /etc/nginx/html
 
-ENV TZ=Asia/Shanghai LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV TZ=Asia/Shanghai LANG=C.UTF-8
 
 RUN set -eux \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
     && apk --update --no-cache add tzdata \
-    && cp -a /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
     && rm -f /etc/nginx/conf.d/default.conf \
     && rm -rf /var/cache/apk/*
@@ -36,7 +38,7 @@ FROM python:3.8.12-alpine AS api-builder
 
 LABEL maintainer="zhoushun98@hotmail.com"
 
-ENV CMDB_VERSION 2.3.10
+ENV CMDB_VERSION 2.3.11
 
 RUN set -x \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
@@ -52,7 +54,7 @@ FROM python:3.8.12-alpine AS cmdb-api
 
 LABEL maintainer="zhoushun98@hotmail.com"
 
-ENV CMDB_VERSION 2.3.10
+ENV CMDB_VERSION 2.3.11
 
 COPY --from=api-builder /cmdb-"$CMDB_VERSION"/cmdb-api /cmdb
 
