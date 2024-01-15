@@ -28,7 +28,7 @@ ENV TZ=Asia/Shanghai LANG=C.UTF-8
 RUN set -eux \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
     && apk --update --no-cache add tzdata \
-    && ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
     && rm -f /etc/nginx/conf.d/default.conf \
     && rm -rf /var/cache/apk/*
@@ -65,7 +65,7 @@ ENV TZ=Asia/Shanghai LANG=C.UTF-8
 RUN set -eux \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
     && apk --update --no-cache add tzdata gcc musl-dev libffi-dev openldap-dev python3-dev jpeg-dev zlib-dev build-base curl \
-    && cp -a /usr/share/zoneinfo/${TZ} /etc/localtime \
+    && ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
     && apkArch="$(apk --print-arch)" \
     && case "$apkArch" in \
