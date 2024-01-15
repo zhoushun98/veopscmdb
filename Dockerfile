@@ -60,7 +60,7 @@ COPY --from=api-builder /cmdb-"$CMDB_VERSION"/cmdb-api /cmdb
 
 WORKDIR /cmdb
 
-ENV TZ=Asia/Shanghai LANG=C.UTF-8 LC_ALL=C.UTF-8
+ENV TZ=Asia/Shanghai LANG=C.UTF-8
 
 RUN set -eux \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
