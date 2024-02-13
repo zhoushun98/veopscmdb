@@ -40,7 +40,7 @@ services:
 
   cmdb-api:
     container_name: cmdb-api
-    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-api:2.3.10
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-api:2.3.11
     environment:
       TZ: Asia/Shanghai
       WAIT_HOSTS: cmdb-db:3306, cmdb-cache:6379
@@ -75,7 +75,7 @@ services:
 
   cmdb-ui:
     container_name: cmdb-ui
-    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-ui:2.3.10
+    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/cmdb-ui:2.3.11
     depends_on:
       cmdb-api:
         condition: service_started
