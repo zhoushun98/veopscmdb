@@ -4,7 +4,7 @@ services:
 
   cmdb-cache:
     container_name: cmdb-cache
-    image: registry.cn-hangzhou.aliyuncs.com/zhoushun/redis:6.2.14
+    image: redis:6.2.14
     restart: always
     environment:
       TZ: Asia/Shanghai
