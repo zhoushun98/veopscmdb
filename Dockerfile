@@ -3,7 +3,7 @@ FROM node:16.20.2 AS ui-builder
 
 LABEL maintainer="zhoushun98@hotmail.com"
 
-ENV CMDB_VERSION 2.3.11
+ENV CMDB_VERSION 2.3.12
 
 RUN set -x \
     && curl -fsSLOJ https://mirror.ghproxy.com/https://github.com/veops/cmdb/archive/refs/tags/"$CMDB_VERSION".tar.gz \
@@ -17,7 +17,7 @@ RUN set -x \
 
 FROM nginx:stable-alpine AS cmdb-ui
 
-ENV CMDB_VERSION 2.3.11
+ENV CMDB_VERSION 2.3.12
 
 LABEL maintainer="zhoushun98@hotmail.com"
 
@@ -38,7 +38,7 @@ FROM python:3.8.12-alpine AS api-builder
 
 LABEL maintainer="zhoushun98@hotmail.com"
 
-ENV CMDB_VERSION 2.3.11
+ENV CMDB_VERSION 2.3.12
 
 RUN set -x \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories \
@@ -54,7 +54,7 @@ FROM python:3.8.12-alpine AS cmdb-api
 
 LABEL maintainer="zhoushun98@hotmail.com"
 
-ENV CMDB_VERSION 2.3.11
+ENV CMDB_VERSION 2.3.12
 
 COPY --from=api-builder /cmdb-"$CMDB_VERSION"/cmdb-api /cmdb
 
